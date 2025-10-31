@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import '../services/game_service.dart';
 import '../widgets/level_node.dart';
+import 'level_screen.dart';
 import '../providers/lang_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/top_status_bar.dart';
@@ -22,6 +23,16 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final gs = context.read<GameService>();
+    if (_scrollController.position.pixels >
+        _scrollController.position.maxScrollExtent - 400) {
+      // Khi kéo gần cuối thì tự tạo thêm ải
+      gs.generateMoreLevels(5);
+    }
   }
 
   @override
@@ -86,7 +97,27 @@ class _MapScreenState extends State<MapScreen> {
                           SizedBox(
                             width: nodeSize,
                             height: nodeSize,
-                            child: LevelNode(level: level, onTap: () {}),
+                            child: LevelNode(
+                              level: level,
+                              onTap: () {
+                                if (level.unlocked) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LevelScreen(level: level),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Level ${level.id} is locked',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Row(
