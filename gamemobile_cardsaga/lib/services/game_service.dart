@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -15,10 +14,8 @@ import '../services/puzzle_service.dart';
 class LevelCompletionResult {
   final List<PuzzlePiece> droppedPieces;
   final List<PuzzlePiece> milestonePieces;
-  LevelCompletionResult({
-    this.droppedPieces = const [],
-    this.milestonePieces = const [],
-  });
+  LevelCompletionResult(
+      {this.droppedPieces = const [], this.milestonePieces = const []});
 }
 
 class GameService extends ChangeNotifier {
@@ -36,13 +33,21 @@ class GameService extends ChangeNotifier {
   List<GameTheme> get availableThemes => _availableThemes;
 
   String _currentThemeId = 'default';
-  GameTheme get currentTheme => _availableThemes.firstWhere(
-        (t) => t.id == _currentThemeId,
-        orElse: () => _availableThemes.first,
-      );
+  GameTheme get currentTheme =>
+      _availableThemes.firstWhere((t) => t.id == _currentThemeId,
+          orElse: () => _availableThemes.first);
 
   List<String> _unlockedThemeIds = ['default'];
   List<String> get unlockedThemeIds => _unlockedThemeIds;
+
+  final List<String> biomeOrder = [
+    'emoji',
+    'fruit_vegetables',
+  ];
+
+  static const int biomeSize = 10;
+
+  final Map<String, List<String>> decorationAssetsByBiome = {};
 
   static const Map<int, List<String>> starMilestoneRewards = {
     10: ['1_0_0'],
@@ -62,6 +67,7 @@ class GameService extends ChangeNotifier {
     notifyListeners();
     try {
       await puzzleService.loadPuzzles();
+      await _loadDecorationAssets();
       await _loadThemes();
     } catch (e) {
       debugPrint('Lỗi khi khởi tạo dữ liệu game: $e');
@@ -108,7 +114,7 @@ class GameService extends ChangeNotifier {
         cardImagePaths: fruitPaths,
         puzzleImageIds: [6, 7, 8, 9, 10],
       ),
-      // Thêm các theme khác
+      // Thêm các theme khác nếu có...
     ];
 
     _unlockedThemeIds =
@@ -119,6 +125,40 @@ class GameService extends ChangeNotifier {
         .id;
 
     debugPrint('Themes đã được tải: ${_availableThemes.length} themes.');
+  }
+
+  Future<void> _loadDecorationAssets() async {
+    try {
+      decorationAssetsByBiome.clear();
+      for (final biomeName in biomeOrder) {
+        decorationAssetsByBiome[biomeName] = [];
+      }
+
+      final manifestJson = await rootBundle.loadString('AssetManifest.json');
+      final Map<String, dynamic> manifestMap = json.decode(manifestJson);
+
+      final allAssetPaths = manifestMap.keys;
+
+      for (final path in allAssetPaths) {
+        for (final biomeName in biomeOrder) {
+          if (path.startsWith('assets/imgs/$biomeName/')) {
+            decorationAssetsByBiome[biomeName]?.add(path);
+            break;
+          }
+        }
+      }
+
+      debugPrint('Đã tải và phân loại assets: $decorationAssetsByBiome');
+    } catch (e) {
+      debugPrint('Lỗi khi tải ảnh trang trí: $e');
+    }
+  }
+
+  List<String> getDecorationAssetsForLevel(int levelId) {
+    final int biomeIndex = (levelId - 1) ~/ biomeSize;
+    if (biomeOrder.isEmpty) return [];
+    final String biomeName = biomeOrder[biomeIndex % biomeOrder.length];
+    return decorationAssetsByBiome[biomeName] ?? [];
   }
 
   List<String> getCardAssetsForCurrentTheme() {
@@ -138,8 +178,7 @@ class GameService extends ChangeNotifier {
       notifyListeners();
     } else {
       debugPrint(
-        "Không thể chuyển sang theme '$themeId': Chưa mở khóa hoặc không tồn tại.",
-      );
+          "Không thể chuyển sang theme '$themeId': Chưa mở khóa hoặc không tồn tại.");
     }
   }
 
@@ -164,25 +203,22 @@ class GameService extends ChangeNotifier {
       return true;
     } else {
       debugPrint(
-        "Không đủ sao để mở khóa theme '$themeId'. Cần ${theme.requiredStars}, đang có ${user.stars}",
-      );
+          "Không đủ sao để mở khóa theme '$themeId'. Cần ${theme.requiredStars}, đang có ${user.stars}");
       return false;
     }
   }
 
   final List<Item> shopItems = [
     Item(
-      id: "freeze",
-      name: "Freeze Time",
-      type: ItemType.freezeTime,
-      price: 50,
-    ),
+        id: "freeze",
+        name: "Freeze Time",
+        type: ItemType.freezeTime,
+        price: 50),
     Item(
-      id: "double",
-      name: "Double Coins (3 levels)",
-      type: ItemType.doubleCoins,
-      price: 80,
-    ),
+        id: "double",
+        name: "Double Coins (3 levels)",
+        type: ItemType.doubleCoins,
+        price: 80),
   ];
 
   void addCoins(int c) {
@@ -265,19 +301,17 @@ class GameService extends ChangeNotifier {
       unlockNext(id);
     }
 
-    _availableThemes.where((t) => !isThemeUnlocked(t.id)).forEach((
-      themeToUnlock,
-    ) {
+    _availableThemes
+        .where((t) => !isThemeUnlocked(t.id))
+        .forEach((themeToUnlock) {
       if (user.stars >= themeToUnlock.requiredStars) {
         unlockTheme(themeToUnlock.id);
       }
     });
 
     final List<PuzzlePiece> dropped = puzzleService.dropRandomPieces();
-    final List<PuzzlePiece> milestones = _checkStarMilestones(
-      oldTotalStars,
-      user.stars,
-    );
+    final List<PuzzlePiece> milestones =
+        _checkStarMilestones(oldTotalStars, user.stars);
 
     puzzleService.dropRandomPiecesWithEffect(context, dropped);
 
@@ -304,12 +338,11 @@ class GameService extends ChangeNotifier {
         user.inventory[item.id]!.owned++;
       } else {
         user.inventory[item.id] = Item(
-          id: item.id,
-          name: item.name,
-          type: item.type,
-          price: item.price,
-          owned: 1,
-        );
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            price: item.price,
+            owned: 1);
       }
       notifyListeners();
       return true;

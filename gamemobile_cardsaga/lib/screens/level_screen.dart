@@ -27,7 +27,6 @@ class _LevelScreenState extends State<LevelScreen> {
   Timer? _timer;
   int _timeLeft = 0;
   bool _gameOver = false;
-  bool _gameWon = false;
   bool _isFrozen = false;
   Timer? _freezeTimer;
   int _freezeCountThisLevel = 0;
@@ -56,8 +55,7 @@ class _LevelScreenState extends State<LevelScreen> {
 
     if (availableAssets.length < pairCount) {
       print(
-        "Lỗi: Không đủ ảnh trong biome cho level ${widget.level.id}. Cần $pairCount, có ${availableAssets.length}",
-      );
+          "Lỗi: Không đủ ảnh trong biome cho level ${widget.level.id}. Cần $pairCount, có ${availableAssets.length}");
       final List<String> pool = [];
       for (int i = 0; i < pairCount; i++) {
         pool.add("?");
@@ -67,10 +65,8 @@ class _LevelScreenState extends State<LevelScreen> {
       _cards = pool;
     } else {
       availableAssets.shuffle(Random());
-      final List<String> selectedImagePaths = availableAssets.sublist(
-        0,
-        pairCount,
-      );
+      final List<String> selectedImagePaths =
+          availableAssets.sublist(0, pairCount);
 
       final List<String> pool = [];
       for (String imagePath in selectedImagePaths) {
@@ -113,10 +109,8 @@ class _LevelScreenState extends State<LevelScreen> {
     if (_isFrozen) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            t['freeze_already_active'] ?? "Freeze is already active!",
-          ),
-        ),
+            content: Text(
+                t['freeze_already_active'] ?? "Freeze is already active!")),
       );
       return;
     }
@@ -169,14 +163,11 @@ class _LevelScreenState extends State<LevelScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.orangeAccent,
-        content: Text(
-          "${t['double_used'] ?? "Double Coins activated!"} ${t['plays_left'] ?? 'Plays left'}: ${gs.doubleCoinsPlaysLeft}",
-        ),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: Colors.orangeAccent,
+      content: Text(
+          "${t['double_used'] ?? "Double Coins activated!"} ${t['plays_left'] ?? 'Plays left'}: ${gs.doubleCoinsPlaysLeft}"),
+    ));
   }
 
   void _onCardTap(int index) {
@@ -213,10 +204,8 @@ class _LevelScreenState extends State<LevelScreen> {
         });
 
         if (_completed.length == _cards.length) {
-          final langProvider = Provider.of<LangProvider>(
-            context,
-            listen: false,
-          );
+          final langProvider =
+              Provider.of<LangProvider>(context, listen: false);
           final langMap = langProvider.locale.languageCode == 'en'
               ? Strings.en
               : Strings.vi;
@@ -230,7 +219,6 @@ class _LevelScreenState extends State<LevelScreen> {
     _timer?.cancel();
     setState(() {
       _gameOver = true;
-      _gameWon = won;
     });
 
     if (!won) {
@@ -239,9 +227,8 @@ class _LevelScreenState extends State<LevelScreen> {
         barrierDismissible: false,
         builder: (_) => AlertDialog(
           title: Text(lang['time_up'] ?? 'Time up!'),
-          content: Text(
-            lang['level_failed'] ?? 'You did not complete this level.',
-          ),
+          content:
+              Text(lang['level_failed'] ?? 'You did not complete this level.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -249,7 +236,7 @@ class _LevelScreenState extends State<LevelScreen> {
                 Navigator.pop(context);
               },
               child: const Text("OK"),
-            ),
+            )
           ],
         ),
       );
@@ -272,11 +259,7 @@ class _LevelScreenState extends State<LevelScreen> {
 
     try {
       result = await gameService.completeLevel(
-        context,
-        widget.level.id,
-        stars,
-        coins,
-      );
+          context, widget.level.id, stars, coins);
       await Future.delayed(const Duration(seconds: 3));
     } catch (e) {
       debugPrint("An error occurred during level completion: $e");
@@ -286,9 +269,8 @@ class _LevelScreenState extends State<LevelScreen> {
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: AppColors.bg,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -308,18 +290,14 @@ class _LevelScreenState extends State<LevelScreen> {
                 Text(
                   "${lang['stars'] ?? 'Stars'}: $stars ⭐    ${lang['coins'] ?? 'Coins'}: $coins",
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                      fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 if (result.droppedPieces.isNotEmpty)
                   Column(
                     children: [
-                      Text(
-                        lang['dropped_pieces'] ?? 'Mảnh thu được:',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+                      Text(lang['dropped_pieces'] ?? 'Mảnh thu được:',
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -327,10 +305,9 @@ class _LevelScreenState extends State<LevelScreen> {
                         alignment: WrapAlignment.center,
                         children: result.droppedPieces
                             .map(
-                              (p) => p.buildWidget(size: 50, borderRadius: 8),
-                            )
+                                (p) => p.buildWidget(size: 50, borderRadius: 8))
                             .toList(),
-                      ),
+                      )
                     ],
                   ),
                 if (result.milestonePieces.isNotEmpty)
@@ -339,25 +316,22 @@ class _LevelScreenState extends State<LevelScreen> {
                     child: Column(
                       children: [
                         Text(
-                          lang['milestone_reward'] ??
-                              '⭐ PHẦN THƯỞNG ĐẶC BIỆT ⭐',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple,
-                            fontSize: 16,
-                          ),
-                        ),
+                            lang['milestone_reward'] ??
+                                '⭐ PHẦN THƯỞNG ĐẶC BIỆT ⭐',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                                fontSize: 16)),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           alignment: WrapAlignment.center,
                           children: result.milestonePieces
-                              .map(
-                                (p) => p.buildWidget(size: 60, borderRadius: 8),
-                              )
+                              .map((p) =>
+                                  p.buildWidget(size: 60, borderRadius: 8))
                               .toList(),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -366,8 +340,7 @@ class _LevelScreenState extends State<LevelScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 12.0),
                     child: Text(
-                      lang['better_luck'] ?? "Chúc bạn may mắn lần sau!",
-                    ),
+                        lang['better_luck'] ?? "Chúc bạn may mắn lần sau!"),
                   ),
               ],
             ),
@@ -379,11 +352,10 @@ class _LevelScreenState extends State<LevelScreen> {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-              ),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
               child: const Text("OK", style: TextStyle(color: Colors.white)),
-            ),
+            )
           ],
         ),
       );
@@ -413,7 +385,9 @@ class _LevelScreenState extends State<LevelScreen> {
   @override
   Widget build(BuildContext context) {
     if (_cards.isEmpty) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     final gridDims = _calculateGridDimensions(_cards.length);
@@ -565,18 +539,20 @@ class _LevelScreenState extends State<LevelScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.white, width: 1),
                 ),
-                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
                 child: Text(
                   "$count",
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
               ),
-            ),
+            )
           ],
         ),
       ],

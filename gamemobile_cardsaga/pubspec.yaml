@@ -1,5 +1,5 @@
 name: gamemobile_cardsaga
-description: "A new Flutter project."
+description: "A simple Card Saga game skeleton in Flutter"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 0.0.1
 
 environment:
   sdk: ">=2.18.0 <4.0.0"
@@ -30,10 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.5
+  provider: ^6.0.5 
   collection: ^1.17.2
   animate_do: ^3.3.4
-
+  saver_gallery: ^2.0.0
+  permission_handler: ^11.0.1
+  screenshot: ^3.0.0     
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -64,11 +67,11 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-
   assets:
     - assets/puzzles/
     - assets/imgs/emoji/
     - assets/imgs/fruit_vegetables/
+  #  - assets/backgrounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
