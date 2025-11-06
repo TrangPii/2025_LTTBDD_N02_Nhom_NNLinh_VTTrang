@@ -32,12 +32,12 @@ class GameService extends ChangeNotifier {
   List<GameTheme> _availableThemes = [];
   List<GameTheme> get availableThemes => _availableThemes;
 
-  String _currentThemeId = 'default';
+  String _currentThemeId = 'emoji';
   GameTheme get currentTheme =>
       _availableThemes.firstWhere((t) => t.id == _currentThemeId,
           orElse: () => _availableThemes.first);
 
-  List<String> _unlockedThemeIds = ['default'];
+  List<String> _unlockedThemeIds = ['emoji'];
   List<String> get unlockedThemeIds => _unlockedThemeIds;
 
   final List<String> biomeOrder = [
