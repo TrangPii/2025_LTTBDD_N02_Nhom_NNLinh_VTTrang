@@ -71,6 +71,7 @@ flutter:
     - assets/puzzles/
     - assets/imgs/emoji/
     - assets/imgs/fruit_vegetables/
+    - assets/imgs/food/
   #  - assets/backgrounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

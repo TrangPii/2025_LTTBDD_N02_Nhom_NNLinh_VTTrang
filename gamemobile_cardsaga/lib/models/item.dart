@@ -1,4 +1,4 @@
-enum ItemType { freezeTime, doubleCoins, worldPiece }
+enum ItemType { freezeTime, doubleCoins }
 
 class Item {
   final String id;
