@@ -404,6 +404,8 @@ class _LevelScreenState extends State<LevelScreen> {
         title: "${lang['start'] ?? 'Start'} ${widget.level.id}",
         showBack: true,
         showShopButton: false,
+        showGalleryButton: false,
+        showCoinsAndStars: true,
       ),
       body: Column(
         children: [

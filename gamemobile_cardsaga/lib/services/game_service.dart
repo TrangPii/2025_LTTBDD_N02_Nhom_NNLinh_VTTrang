@@ -10,6 +10,7 @@ import '../models/theme.dart';
 import '../models/puzzle_piece.dart';
 import '../services/level_generator.dart';
 import '../services/puzzle_service.dart';
+import '../models/puzzle_image.dart';
 
 class LevelCompletionResult {
   final List<PuzzlePiece> droppedPieces;
@@ -39,6 +40,18 @@ class GameService extends ChangeNotifier {
 
   List<String> _unlockedThemeIds = ['emoji'];
   List<String> get unlockedThemeIds => _unlockedThemeIds;
+
+  // Lấy danh sách các PuzzleImage đã được mở khóa dựa trên theme
+  List<PuzzleImage> get unlockedPuzzles {
+    final unlockedPuzzleIds = _availableThemes
+        .where((theme) => _unlockedThemeIds.contains(theme.id))
+        .expand((theme) => theme.puzzleImageIds)
+        .toSet();
+
+    return puzzleService.puzzles
+        .where((puzzle) => unlockedPuzzleIds.contains(puzzle.id))
+        .toList();
+  }
 
   final List<String> biomeOrder = [
     'emoji',
@@ -96,6 +109,7 @@ class GameService extends ChangeNotifier {
         id: 'emoji',
         nameKey: 'theme_emoji',
         requiredStars: 0,
+        isDefault: true,
         cardImagePaths: emojiPaths,
         puzzleImageIds: [1, 2],
       ),

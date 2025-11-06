@@ -4,7 +4,7 @@ import '../services/game_service.dart';
 import '../models/item.dart';
 import '../providers/lang_provider.dart';
 import '../utils/constants.dart';
-import '../models/theme.dart';
+import '../widgets/top_status_bar.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -16,24 +16,15 @@ class ShopScreen extends StatelessWidget {
     final t = lang.locale.languageCode == 'en' ? Strings.en : Strings.vi;
 
     final items = gs.shopItems;
-    final themes = gs.availableThemes.where((t) => !t.isDefault).toList();
+    final themes = gs.availableThemes.toList();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          tooltip: t['back'],
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(t['shop_title'] ?? 'Shop',
-            style: TextStyle(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.language, color: Colors.white),
-            onPressed: () => lang.toggle(),
-          ),
-        ],
+      appBar: TopStatusBar(
+        title: t['shop_title'] ?? 'Shop',
+        showBack: true,
+        showCoinsAndStars: true,
+        showGalleryButton: false,
+        showShopButton: false,
       ),
       body: ListView.separated(
           padding: const EdgeInsets.all(8.0),
@@ -120,61 +111,76 @@ class ShopScreen extends StatelessWidget {
                 final theme = themes[themeIndex];
                 final bool isUnlocked = gs.isThemeUnlocked(theme.id);
                 final bool canUnlock = gs.user.stars >= theme.requiredStars;
+                final bool isSelected = gs.currentTheme.id == theme.id;
+
+                Widget trailingButton;
+
+                if (isUnlocked) {
+                  if (isSelected) {
+                    trailingButton = ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
+                      onPressed: null,
+                      icon: const Icon(Icons.check_circle, size: 18),
+                      label: Text(t['selected'] ?? 'Selected'),
+                    );
+                  } else {
+                    trailingButton = ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orangeAccent),
+                      onPressed: () {
+                        gs.setCurrentTheme(theme.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Switched to ${t[theme.nameKey] ?? theme.id} theme')),
+                        );
+                      },
+                      icon: const Icon(Icons.swap_horiz, size: 18),
+                      label: Text(t['select'] ?? 'Select'),
+                    );
+                  }
+                } else {
+                  if (canUnlock) {
+                    trailingButton = ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orangeAccent),
+                      onPressed: () {
+                        final success = gs.unlockTheme(theme.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(success
+                                  ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
+                                  : 'Failed to unlock')),
+                        );
+                      },
+                      icon: const Icon(Icons.lock_open, size: 18),
+                      label: Text(t['unlock'] ?? 'Unlock'),
+                    );
+                  } else {
+                    trailingButton = ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey),
+                      onPressed: null,
+                      icon: const Icon(Icons.lock, size: 18),
+                      label: Text(t['unlock'] ?? 'Unlock'),
+                    );
+                  }
+                }
 
                 return ListTile(
-                    leading: const Icon(Icons.palette,
-                        color: Colors.purple, size: 30), // Icon cho theme
-                    title: Text(t[theme.nameKey] ?? theme.id,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600)), // Lấy tên từ Strings
-                    subtitle: Text(
-                      "${t['stars'] ?? 'Stars'} required: ${theme.requiredStars}",
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                    trailing: isUnlocked
-                        ? ElevatedButton.icon(
-                            // Nút chọn theme nếu đã mở khóa
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.lightGreen),
-                            onPressed: gs.currentTheme.id == theme.id
-                                ? null
-                                : () {
-                                    // Vô hiệu hóa nếu đang là theme hiện tại
-                                    gs.setCurrentTheme(theme.id);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              'Switched to ${t[theme.nameKey] ?? theme.id} theme')),
-                                    );
-                                  },
-                            icon: Icon(
-                                gs.currentTheme.id == theme.id
-                                    ? Icons.check_circle
-                                    : Icons.swap_horiz,
-                                size: 18),
-                            label: Text(gs.currentTheme.id == theme.id
-                                ? t['selected'] ?? 'Selected'
-                                : t['select'] ?? 'Select'))
-                        : ElevatedButton.icon(
-                            // Nút mở khóa nếu chưa mở khóa
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: canUnlock
-                                    ? Colors.pinkAccent
-                                    : Colors.grey),
-                            onPressed: canUnlock
-                                ? () {
-                                    final success = gs.unlockTheme(theme.id);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(success
-                                              ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
-                                              : 'Failed to unlock')),
-                                    );
-                                  }
-                                : null, // Vô hiệu hóa nút nếu không đủ sao
-                            icon: const Icon(Icons.lock_open, size: 18),
-                            label: Text(t['unlock'] ?? 'Unlock'),
-                          ));
+                  leading:
+                      const Icon(Icons.palette, color: Colors.purple, size: 30),
+                  title: Text(t[theme.nameKey] ?? theme.id,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(
+                    theme.id == 'emoji'
+                        ? (t['theme_default'] ?? 'Default Theme')
+                        : "${t['stars_required'] ?? 'Stars Required'}: ${theme.requiredStars}",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  trailing: trailingButton,
+                );
               } else {
                 return const SizedBox.shrink();
               }

@@ -13,17 +13,17 @@ class PuzzleGalleryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final lang = context.watch<LangProvider>();
     final t = lang.locale.languageCode == 'en' ? Strings.en : Strings.vi;
-    final puzzleService = context.watch<GameService>().puzzleService;
-    final userPieces = context.watch<GameService>().user.puzzlePieces;
-
-    // Lấy danh sách các PuzzleImage có sẵn
-    final allPuzzles = puzzleService.puzzles;
+    final gameService = context.watch<GameService>();
+    final allPuzzles = gameService.unlockedPuzzles;
+    final userPieces = gameService.user.puzzlePieces;
 
     return Scaffold(
       appBar: TopStatusBar(
         title: t['puzzle_gallery_title'] ?? 'Puzzle Gallery',
         showBack: true,
-        showShopButton: true,
+        showShopButton: false,
+        showGalleryButton: false,
+        showCoinsAndStars: false,
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16.0),
