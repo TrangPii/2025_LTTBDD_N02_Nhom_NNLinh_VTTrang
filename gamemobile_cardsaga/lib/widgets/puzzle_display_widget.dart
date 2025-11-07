@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/puzzle_image.dart';
 import '../services/game_service.dart';
-import '../services/puzzle_service.dart';
 
 class PuzzleDisplayWidget extends StatefulWidget {
   final PuzzleImage puzzleImage;
@@ -23,6 +22,7 @@ class PuzzleDisplayWidget extends StatefulWidget {
 class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
   ui.Image? _fullUiImage;
   bool _isLoading = true;
+  double _imageAspectRatio = 1.0;
 
   @override
   void initState() {
@@ -48,6 +48,8 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
       if (mounted) {
         setState(() {
           _fullUiImage = frame.image;
+          _imageAspectRatio =
+              _fullUiImage!.width.toDouble() / _fullUiImage!.height.toDouble();
           _isLoading = false;
         });
       }
@@ -62,23 +64,22 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return AspectRatio(
-        aspectRatio: PuzzleService.targetAspectRatio,
-        child: Container(
-            width: widget.displayWidth,
-            color: Colors.grey.shade200,
-            child: const Center(child: CircularProgressIndicator())),
+      return SizedBox(
+        width: widget.displayWidth,
+        height: widget.displayWidth / _imageAspectRatio,
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_fullUiImage == null) {
-      return AspectRatio(
-        aspectRatio: PuzzleService.targetAspectRatio,
+      return SizedBox(
+        width: widget.displayWidth,
+        height: widget.displayWidth / _imageAspectRatio,
         child: Container(
-          width: widget.displayWidth,
           color: Colors.red.shade100,
           child: const Center(
-              child: Icon(Icons.error_outline, color: Colors.red, size: 40)),
+            child: Icon(Icons.error_outline, color: Colors.red, size: 40),
+          ),
         ),
       );
     }
@@ -89,8 +90,7 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
         .map((p) => p.id)
         .toSet();
 
-    final double displayHeight =
-        widget.displayWidth / PuzzleService.targetAspectRatio;
+    final double displayHeight = widget.displayWidth / _imageAspectRatio;
 
     int maxRow = 0;
     int maxCol = 0;
@@ -115,9 +115,6 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
     return Container(
       width: widget.displayWidth,
       height: displayHeight,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-      ),
       child: Stack(
         children: [
           Positioned.fill(
@@ -125,7 +122,7 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
               opacity: 0.15,
               child: Image.asset(
                 widget.puzzleImage.fullImagePath,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 errorBuilder: (context, error, stackTrace) =>
                     Container(color: Colors.grey.shade200),
               ),
@@ -148,17 +145,10 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
                       color: Colors.grey.shade300.withOpacity(0.5), width: 0.5),
                 ),
                 child: isCollected
-                    ? FittedBox(
-                        fit: BoxFit.fill,
-                        child: SizedBox(
-                          width: piece.position.width,
-                          height: piece.position.height,
-                          child: CustomPaint(
-                            painter: _SinglePiecePainter(
-                              image: _fullUiImage!,
-                              srcRect: piece.position,
-                            ),
-                          ),
+                    ? CustomPaint(
+                        painter: _SinglePiecePainter(
+                          image: _fullUiImage!,
+                          srcRect: piece.position,
                         ),
                       )
                     : Container(
@@ -183,7 +173,7 @@ class _SinglePiecePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final dstRect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final paint = Paint()..filterQuality = FilterQuality.medium;
+    final paint = Paint()..filterQuality = FilterQuality.high;
     canvas.drawImageRect(image, srcRect, dstRect, paint);
   }
 

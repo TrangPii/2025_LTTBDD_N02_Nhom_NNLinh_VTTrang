@@ -23,7 +23,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final t = lang.locale.languageCode == 'en' ? Strings.en : Strings.vi;
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = 10.0 * 2;
+    final horizontalPadding = 16.0 * 2;
     final displayWidth = screenWidth - horizontalPadding;
 
     final collectedCount = widget.puzzleImage.collectedCount;
@@ -35,6 +35,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         title: '${t['puzzle_gallery_title'] ?? 'Puzzle'}',
         showBack: true,
         showShopButton: false,
+        showCoinsAndStars: false,
+        showGalleryButton: false,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

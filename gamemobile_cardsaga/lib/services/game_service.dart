@@ -209,9 +209,11 @@ class GameService extends ChangeNotifier {
       debugPrint("Theme '$themeId' đã được mở khóa rồi.");
       return true;
     }
-    if (user.stars >= theme.requiredStars) {
+    if (user.stars >= theme.requiredStars &&
+        !_unlockedThemeIds.contains(themeId)) {
+      user.stars -= theme.requiredStars;
+
       _unlockedThemeIds.add(themeId);
-      debugPrint("Đã mở khóa theme: '$themeId'");
       notifyListeners();
       return true;
     } else {
@@ -322,7 +324,15 @@ class GameService extends ChangeNotifier {
       }
     });
 
-    final List<PuzzlePiece> dropped = puzzleService.dropRandomPieces();
+    // 1. Lấy danh sách ID puzzle từ các theme đã mở khóa
+    final unlockedPuzzleIds = _availableThemes
+        .where((theme) => _unlockedThemeIds.contains(theme.id))
+        .expand((theme) => theme.puzzleImageIds)
+        .toSet();
+
+    // 2. Truyền danh sách ID này vào hàm dropRandomPieces
+    final List<PuzzlePiece> dropped =
+        puzzleService.dropRandomPieces(allowedPuzzleIds: unlockedPuzzleIds);
     final List<PuzzlePiece> milestones =
         _checkStarMilestones(oldTotalStars, user.stars);
 

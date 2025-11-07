@@ -8,7 +8,6 @@ import '../models/puzzle_piece.dart';
 class PuzzleService {
   final List<PuzzleImage> puzzles = [];
   final Random _rnd = Random();
-  static const double targetAspectRatio = 9.0 / 16.0;
 
   Future<void> loadPuzzles() async {
     if (puzzles.isNotEmpty) return;
@@ -16,7 +15,7 @@ class PuzzleService {
       try {
         final path = 'assets/puzzles/$i.jpg';
         final img = await _loadImage(path);
-        final pieces = await _cutImageWithAspectRatio(img, i, path);
+        final pieces = await _cutImageIntoPieces(img, i, path);
         puzzles.add(PuzzleImage(id: i, fullImagePath: path, pieces: pieces));
       } catch (e) {
         debugPrint("Error loading puzzle $i: $e");
@@ -24,7 +23,7 @@ class PuzzleService {
     }
   }
 
-  Future<List<PuzzlePiece>> _cutImageWithAspectRatio(
+  Future<List<PuzzlePiece>> _cutImageIntoPieces(
     ui.Image image,
     int imageId,
     String fullPath,
@@ -32,24 +31,10 @@ class PuzzleService {
     final pieces = <PuzzlePiece>[];
     final imgWidth = image.width.toDouble();
     final imgHeight = image.height.toDouble();
-    final imgAspectRatio = imgWidth / imgHeight;
-
-    double sourceCropWidth;
-    double sourceCropHeight;
-    double sourceCropX = 0;
-    double sourceCropY = 0;
-
-    if (imgAspectRatio > targetAspectRatio) {
-      sourceCropWidth = imgHeight * targetAspectRatio;
-      sourceCropHeight = imgHeight;
-      sourceCropX = (imgWidth - sourceCropWidth) / 2.0;
-      sourceCropY = 0;
-    } else {
-      sourceCropWidth = imgWidth;
-      sourceCropHeight = imgWidth / targetAspectRatio;
-      sourceCropX = 0;
-      sourceCropY = (imgHeight - sourceCropHeight) / 2.0;
-    }
+    final double sourceCropWidth = imgWidth;
+    final double sourceCropHeight = imgHeight;
+    const double sourceCropX = 0;
+    const double sourceCropY = 0;
 
     final int rows;
     final int cols;
@@ -75,9 +60,8 @@ class PuzzleService {
         );
 
         final bool isSpecialPiece = (r == 0 && c == 0 && imageId <= 5);
-        final type = isSpecialPiece
-            ? PuzzlePieceType.special
-            : PuzzlePieceType.normal;
+        final type =
+            isSpecialPiece ? PuzzlePieceType.special : PuzzlePieceType.normal;
 
         pieces.add(
           PuzzlePiece(
@@ -96,13 +80,16 @@ class PuzzleService {
   }
 
   /// Lấy một mảnh ngẫu nhiên (chỉ lấy mảnh thường)
-  PuzzlePiece? getRandomPiece() {
+  PuzzlePiece? getRandomPiece({Set<int>? allowedPuzzleIds}) {
     if (puzzles.isEmpty) return null;
 
-    final availableNormalPieces = puzzles
-        .expand((p) => p.pieces)
-        .where((piece) => !piece.isSpecial && !piece.collected)
-        .toList();
+    final availableNormalPieces =
+        puzzles.expand((p) => p.pieces).where((piece) {
+      final bool isAllowed = allowedPuzzleIds == null ||
+          allowedPuzzleIds.isEmpty ||
+          allowedPuzzleIds.contains(piece.imageId);
+      return isAllowed && !piece.isSpecial && !piece.collected;
+    }).toList();
 
     if (availableNormalPieces.isEmpty) return null;
 
@@ -130,7 +117,7 @@ class PuzzleService {
   }
 
   /// Rơi mảnh puzzle ngẫu nhiên (không hiệu ứng)
-  List<PuzzlePiece> dropRandomPieces() {
+  List<PuzzlePiece> dropRandomPieces({Set<int>? allowedPuzzleIds}) {
     final result = <PuzzlePiece>[];
     final chance = _rnd.nextInt(100);
 
@@ -142,7 +129,7 @@ class PuzzleService {
     }
 
     for (int i = 0; i < piecesToDrop; i++) {
-      final piece = getRandomPiece();
+      final piece = getRandomPiece(allowedPuzzleIds: allowedPuzzleIds);
       if (piece != null) {
         result.add(piece);
       }
