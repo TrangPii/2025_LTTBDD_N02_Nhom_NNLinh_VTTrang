@@ -251,16 +251,36 @@ class _LevelScreenState extends State<LevelScreen> {
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
-          title: Text(lang['time_up'] ?? 'Time up!'),
-          content:
-              Text(lang['level_failed'] ?? 'You did not complete this level.'),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: AppColors.bg,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.sentiment_dissatisfied,
+                  color: Colors.redAccent, size: 30),
+              const SizedBox(width: 8),
+              Text(
+                lang['time_up'] ?? 'Time up!',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Text(
+            lang['level_failed'] ?? 'You did not complete this level.',
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: const Text("OK"),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
+              child: Text(lang['ok'] ?? "OK",
+                  style: TextStyle(color: Colors.white)),
             )
           ],
         ),
@@ -383,25 +403,13 @@ class _LevelScreenState extends State<LevelScreen> {
               },
               style:
                   ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
-              child: const Text("OK", style: TextStyle(color: Colors.white)),
+              child: Text(lang['ok'] ?? "OK",
+                  style: TextStyle(color: Colors.white)),
             )
           ],
         ),
       );
     }
-  }
-
-  Map<String, int> _calculateGridDimensions(int totalCards) {
-    if (totalCards % 4 == 0) {
-      return {'rows': totalCards ~/ 4, 'cols': 4};
-    }
-    if (totalCards % 3 == 0) {
-      return {'rows': totalCards ~/ 3, 'cols': 3};
-    }
-    if (totalCards % 2 == 0) {
-      return {'rows': totalCards ~/ 2, 'cols': 2};
-    }
-    return {'rows': totalCards, 'cols': 1};
   }
 
   @override
@@ -419,14 +427,10 @@ class _LevelScreenState extends State<LevelScreen> {
       );
     }
 
-    final gridDims = _calculateGridDimensions(_cards.length);
-    final int numColumns = gridDims['cols']!;
-
     final langProvider = Provider.of<LangProvider>(context);
     final lang =
         langProvider.locale.languageCode == 'en' ? Strings.en : Strings.vi;
 
-    // cập nhật số lượng item từ GameService
     final gs = context.watch<GameService>();
 
     return Scaffold(
@@ -440,7 +444,7 @@ class _LevelScreenState extends State<LevelScreen> {
       body: Column(
         children: [
           const SizedBox(height: 12),
-          // --- THANH HIỂN THỊ VẬT PHẨM VÀ THỜI GIAN ---
+          // thanh hiển thị vật phẩm và thời gian
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
@@ -457,33 +461,28 @@ class _LevelScreenState extends State<LevelScreen> {
                     children: [
                       _buildItemButton(
                         icon: Icons.ac_unit,
-                        label: lang['freeze'] ?? "Freeze",
+                        label: lang['item_freeze'] ?? "Freeze",
                         color: Colors.blueAccent,
                         count: gs.user.inventory["freeze"]?.owned ?? 0,
                         onTap: () => _activateFreezeTime(gs, lang),
-                        // Vô hiệu hóa nút khi đang đóng băng
                         isDisabled: _isFrozen,
                       ),
                       const SizedBox(width: 16),
                       _buildItemButton(
                         icon: Icons.monetization_on,
-                        label: lang['double'] ?? "Double",
+                        label: lang['item_double'] ?? "Double",
                         color: Colors.orangeAccent,
                         count: gs.user.inventory["double"]?.owned ?? 0,
                         onTap: () => _activateDoubleCoins(gs, lang),
-                        // Vô hiệu hóa nút nếu đã kích hoạt
                         isDisabled: gs.doubleCoinsPlaysLeft > 0,
                       ),
                     ],
                   ),
-
-                  // --- Đồng hồ ---
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.timer_outlined,
-                        // Đổi màu khi đóng băng
                         color: _isFrozen
                             ? Colors.blue.shade700
                             : Colors.red.shade700,
@@ -495,7 +494,6 @@ class _LevelScreenState extends State<LevelScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          // Đổi màu khi đóng băng
                           color: _isFrozen
                               ? Colors.blue.shade700
                               : Colors.red.shade700,
@@ -507,25 +505,86 @@ class _LevelScreenState extends State<LevelScreen> {
               ),
             ),
           ),
-          // --- Lưới game ---
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: numColumns,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.8,
-              ),
-              itemCount: _cards.length,
-              itemBuilder: (context, index) {
-                final bool isRevealed =
-                    _selected.contains(index) || _completed.contains(index);
 
-                return CardTile(
-                  revealed: isRevealed,
-                  content: _cards[index],
-                  onTap: () => _onCardTap(index),
+          //Phần hiển thị thẻ
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final double availableWidth = constraints.maxWidth - 40;
+                final double availableHeight = constraints.maxHeight - 40;
+                const double spacing = 12.0;
+                const double cardAspectRatio = 0.8;
+                final int totalCards = _cards.length;
+
+                int finalNumColumns = 2;
+                double finalCardWidth = 0.0;
+
+                for (int numCols in [2, 3, 4]) {
+                  final int numRows = (totalCards / numCols).ceil();
+
+                  // Tính kích thước thẻ dựa trên chiều rộng
+                  final double cardWidthBasedOnWidth =
+                      (availableWidth - (spacing * (numCols - 1))) / numCols;
+                  final double cardHeightBasedOnWidth =
+                      cardWidthBasedOnWidth / cardAspectRatio;
+
+                  // Tính tổng chiều cao cần thiết
+                  final double totalHeightNeeded =
+                      (numRows * cardHeightBasedOnWidth) +
+                          (spacing * (numRows - 1));
+
+                  if (totalHeightNeeded <= availableHeight) {
+                    finalNumColumns = numCols;
+                    finalCardWidth = cardWidthBasedOnWidth;
+                    break;
+                  }
+
+                  if (numCols == 4) {
+                    finalNumColumns = 4;
+                    final int numRows = (totalCards / numCols).ceil();
+
+                    final double cardHeightBasedOnHeight =
+                        (availableHeight - (spacing * (numRows - 1))) / numRows;
+                    final double cardWidthBasedOnHeight =
+                        cardHeightBasedOnHeight * cardAspectRatio;
+
+                    finalCardWidth =
+                        min(cardWidthBasedOnWidth, cardWidthBasedOnHeight);
+                  }
+                }
+
+                finalCardWidth = finalCardWidth.clamp(60.0, 150.0);
+                final double finalCardHeight = finalCardWidth / cardAspectRatio;
+
+                // Sử dụng ConstrainedBox để giới hạn chiều rộng của Wrap
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      // Chiều rộng tối đa của Wrap là (số cột * rộng thẻ) + (khoảng cách)
+                      maxWidth: (finalNumColumns * finalCardWidth) +
+                          (spacing * (finalNumColumns - 1)),
+                    ),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      runAlignment: WrapAlignment.center,
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: List.generate(_cards.length, (index) {
+                        final bool isRevealed = _selected.contains(index) ||
+                            _completed.contains(index);
+
+                        return SizedBox(
+                          width: finalCardWidth,
+                          height: finalCardHeight,
+                          child: CardTile(
+                            revealed: isRevealed,
+                            content: _cards[index],
+                            onTap: () => _onCardTap(index),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
                 );
               },
             ),
