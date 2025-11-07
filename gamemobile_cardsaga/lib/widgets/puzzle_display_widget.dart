@@ -6,14 +6,13 @@ import '../models/puzzle_image.dart';
 import '../models/puzzle_piece.dart';
 import '../services/game_service.dart';
 
+// Loại bỏ thuộc tính displayWidth
 class PuzzleDisplayWidget extends StatefulWidget {
   final PuzzleImage puzzleImage;
-  final double displayWidth;
 
   const PuzzleDisplayWidget({
     super.key,
     required this.puzzleImage,
-    required this.displayWidth,
   });
 
   @override
@@ -49,6 +48,7 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
       if (mounted) {
         setState(() {
           _fullUiImage = frame.image;
+          // Tính toán tỷ lệ khung hình
           _imageAspectRatio =
               _fullUiImage!.width.toDouble() / _fullUiImage!.height.toDouble();
           _isLoading = false;
@@ -64,48 +64,75 @@ class _PuzzleDisplayWidgetState extends State<PuzzleDisplayWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: widget.displayWidth,
-        height: widget.displayWidth / _imageAspectRatio,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_fullUiImage == null) {
-      return SizedBox(
-        width: widget.displayWidth,
-        height: widget.displayWidth / _imageAspectRatio,
-        child: Container(
-          color: Colors.red.shade100,
-          child: const Center(
-            child: Icon(Icons.error_outline, color: Colors.red, size: 40),
-          ),
-        ),
-      );
-    }
-
-    // Lấy danh sách các mảnh đã thu thập
     final gameService = context.watch<GameService>();
     final collectedPieces = gameService.user.puzzlePieces
         .where((p) => p.imageId == widget.puzzleImage.id)
         .toList();
 
-    return Container(
-      width: widget.displayWidth,
-      height: widget.displayWidth / _imageAspectRatio,
-      child: CustomPaint(
-        painter: _PuzzlePainter(
-          image: _fullUiImage!,
-          allPieces: widget.puzzleImage.pieces,
-          collectedPieces: collectedPieces,
+    // SỬ DỤNG LayoutBuilder để lấy kích thước tối đa được cấp phát (từ Expanded)
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Lấy kích thước tối đa từ Expanded
+        final maxDisplayWidth = constraints.maxWidth;
+        final maxDisplayHeight = constraints.maxHeight;
+
+        // Bắt đầu tính toán kích thước dựa trên chiều rộng tối đa
+        double finalWidth = maxDisplayWidth;
+        double finalHeight = maxDisplayWidth / _imageAspectRatio;
+
+        // Nếu chiều cao tính toán bị vượt quá chiều cao tối đa,
+        // thì tính toán lại dựa trên chiều cao tối đa (giới hạn theo chiều cao)
+        if (finalHeight > maxDisplayHeight) {
+          finalHeight = maxDisplayHeight;
+          finalWidth = maxDisplayHeight * _imageAspectRatio;
+        }
+
+        // Tạo một SizedBox với kích thước đã tính toán co giãn
+        return SizedBox(
+          width: finalWidth,
+          height: finalHeight,
+          child: _buildContent(collectedPieces),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(List<PuzzlePiece> collectedPieces) {
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8.0),
         ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_fullUiImage == null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.red.shade100,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: const Center(
+          child: Icon(Icons.error_outline, color: Colors.red, size: 40),
+        ),
+      );
+    }
+
+    // Trường hợp hiển thị thành công
+    return CustomPaint(
+      // CustomPaint sẽ lấy kích thước từ SizedBox bên ngoài
+      painter: _PuzzlePainter(
+        image: _fullUiImage!,
+        allPieces: widget.puzzleImage.pieces,
+        collectedPieces: collectedPieces,
       ),
     );
   }
 }
 
-// Painter xử lý tất cả logic vẽ
+// Painter không cần thay đổi
 class _PuzzlePainter extends CustomPainter {
   final ui.Image image;
   final List<PuzzlePiece> allPieces;

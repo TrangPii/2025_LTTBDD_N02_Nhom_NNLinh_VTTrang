@@ -17,14 +17,13 @@ class PuzzleScreen extends StatefulWidget {
 }
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
+  // Đặt chiều rộng tối đa cho phần tiến độ (để cân xứng với màn hình desktop)
+  static const double _maxProgressWidth = 500.0;
+
   @override
   Widget build(BuildContext context) {
     final lang = context.watch<LangProvider>();
     final t = lang.locale.languageCode == 'en' ? Strings.en : Strings.vi;
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = 16.0 * 2;
-    final displayWidth = screenWidth - horizontalPadding;
 
     final collectedCount = widget.puzzleImage.collectedCount;
     final totalCount = widget.puzzleImage.totalCount;
@@ -38,58 +37,69 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         showCoinsAndStars: false,
         showGalleryButton: false,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Center(
+      body: Column(
+        children: [
+          // Khu vực hình ảnh: Co giãn và chiếm không gian còn lại
+          Expanded(
+            child: Center(
+              // Padding cho hình ảnh (16.0 xung quanh)
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: PuzzleDisplayWidget(
                   puzzleImage: widget.puzzleImage,
-                  displayWidth: displayWidth,
                 ),
               ),
-              // --------------------------------------------------------
-
-              const SizedBox(height: 20),
-
-              // --- Phần Tiến độ ---
-              if (isCompleted)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    t['puzzle_complete'] ?? 'Puzzle Complete!',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              Text(
-                '$collectedCount / $totalCount',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: totalCount > 0 ? collectedCount / totalCount : 0,
-                    backgroundColor: Colors.grey.shade300,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.pinkAccent),
-                    minHeight: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (isCompleted) const SizedBox(height: 16),
-            ],
+            ),
           ),
-        ),
+          // --------------------------------------------------------
+
+          // --- Phần Tiến độ (Fixed height, dính ở dưới) ---
+          Center(
+            // QUAN TRỌNG: Dùng Center để ngăn phần tử dãn ngang hết cỡ
+            child: ConstrainedBox(
+              // Giới hạn chiều rộng tối đa cho phần tiến độ
+              constraints: const BoxConstraints(maxWidth: _maxProgressWidth),
+              child: Padding(
+                // Tối ưu Padding: Bottom padding 30.0 để có khoảng trống đẹp mắt
+                padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 30.0),
+                child: Column(
+                  // Không cần crossAxisAlignment: stretch nữa
+                  children: [
+                    if (isCompleted)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(
+                          t['puzzle_complete'] ?? 'Puzzle Complete!',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    Text(
+                      '$collectedCount / $totalCount',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: totalCount > 0 ? collectedCount / totalCount : 0,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.pinkAccent),
+                        minHeight: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
