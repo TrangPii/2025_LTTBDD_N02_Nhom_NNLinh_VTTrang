@@ -110,21 +110,22 @@ class ShopScreen extends StatelessWidget {
               if (themeIndex < themes.length) {
                 final theme = themes[themeIndex];
 
-                // --- Biến logic ---
                 final bool isUnlocked = gs.isThemeUnlocked(theme.id);
                 final bool canAfford = gs.user.stars >= theme.requiredStars;
                 final bool isSelected = gs.currentTheme.id == theme.id;
 
                 Widget trailingButton;
 
-                // --- BẮT ĐẦU LOGIC 4 TRƯỜNG HỢP ---
+                // --- BẮT ĐẦU LOGIC 4 TRƯỜNG HỢP BUTTON
 
                 // Yêu cầu 1: Đang sử dụng -> Button "Selected" (Xanh lá)
                 if (isSelected) {
                   trailingButton = ElevatedButton.icon(
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: null,
+                    style: ElevatedButton.styleFrom(
+                      disabledBackgroundColor: Colors.green,
+                      disabledForegroundColor: Colors.white,
+                    ),
+                    onPressed: null, // Vô hiệu hóa
                     icon: const Icon(Icons.check_circle, size: 18),
                     label: Text(t['selected'] ?? 'Selected'),
                   );
@@ -154,7 +155,6 @@ class ShopScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orangeAccent),
                     onPressed: () {
-                      // Hàm unlockTheme này đã được sửa (ở bước trước) để không trừ sao
                       final success = gs.unlockTheme(theme.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -170,17 +170,14 @@ class ShopScreen extends StatelessWidget {
 
                 // Yêu cầu 4: Chưa mở khóa VÀ không đủ sao -> Button "Lock" (Xám)
                 else {
-                  // (!isUnlocked && !canAfford)
                   trailingButton = ElevatedButton.icon(
                     style:
                         ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                    onPressed: null, // Vô hiệu hóa nút
+                    onPressed: null,
                     icon: const Icon(Icons.lock, size: 18),
                     label: Text(t['unlock'] ?? 'Unlock'),
                   );
                 }
-
-                // --- KẾT THÚC LOGIC 4 TRƯỜNG HỢP ---
 
                 return ListTile(
                   leading:

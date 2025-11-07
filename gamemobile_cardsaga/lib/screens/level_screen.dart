@@ -13,7 +13,7 @@ import '../widgets/top_status_bar.dart';
 
 class LevelScreen extends StatefulWidget {
   final Level level;
-  const LevelScreen({Key? key, required this.level}) : super(key: key);
+  const LevelScreen({super.key, required this.level});
 
   @override
   State<LevelScreen> createState() => _LevelScreenState();
@@ -27,10 +27,11 @@ class _LevelScreenState extends State<LevelScreen> {
   Timer? _timer;
   int _timeLeft = 0;
   bool _gameOver = false;
+  bool _isChecking = false;
+
   bool _isFrozen = false;
   Timer? _freezeTimer;
-  int _freezeCountThisLevel = 0;
-  bool _isChecking = false;
+  int _freezeCountThisLevel = 0; // giới hạn 5 lần mỗi màn
 
   @override
   void initState() {
@@ -90,6 +91,7 @@ class _LevelScreenState extends State<LevelScreen> {
         t.cancel();
         return;
       }
+
       if (_isFrozen) {
         return;
       }
@@ -105,6 +107,7 @@ class _LevelScreenState extends State<LevelScreen> {
     });
   }
 
+  // hàm kích hoạt đóng băng thời gian
   void _activateFreezeTime(GameService gs, Map<String, String> t) {
     if (_isFrozen) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,6 +140,7 @@ class _LevelScreenState extends State<LevelScreen> {
 
     _freezeTimer?.cancel();
 
+    // Hẹn giờ 20s để tắt đóng băng
     _freezeTimer = Timer(const Duration(seconds: 20), () {
       if (mounted) {
         setState(() => _isFrozen = false);
@@ -151,7 +155,17 @@ class _LevelScreenState extends State<LevelScreen> {
     );
   }
 
+  // hàm kích hoạt nhân đôi xu thưởng
   void _activateDoubleCoins(GameService gs, Map<String, String> t) {
+    if (gs.doubleCoinsPlaysLeft > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.orangeAccent,
+        content: Text(
+            "${t['double_already_active'] ?? "Double Coins already active!"} ${t['plays_left'] ?? 'Plays left'}: ${gs.doubleCoinsPlaysLeft}"),
+      ));
+      return;
+    }
+
     final bool itemUsed = gs.useItem("double");
     if (!itemUsed) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -217,6 +231,7 @@ class _LevelScreenState extends State<LevelScreen> {
 
   Future<void> _endGame(bool won, Map<String, String> lang) async {
     _timer?.cancel();
+    _freezeTimer?.cancel();
     setState(() {
       _gameOver = true;
     });
@@ -265,6 +280,10 @@ class _LevelScreenState extends State<LevelScreen> {
       debugPrint("An error occurred during level completion: $e");
     } finally {
       if (!mounted) return;
+      final bool wasDoubled = gameService.doubleCoinsPlaysLeft > 0 &&
+          gameService.user.inventory["double"]?.owned != null;
+      final int finalCoins = wasDoubled ? (coins * 2) : coins;
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -288,7 +307,7 @@ class _LevelScreenState extends State<LevelScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "${lang['stars'] ?? 'Stars'}: $stars ⭐    ${lang['coins'] ?? 'Coins'}: $coins",
+                  "${lang['stars'] ?? 'Stars'}: $stars ⭐    ${lang['coins'] ?? 'Coins'}: $finalCoins",
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w600),
                 ),
@@ -397,6 +416,7 @@ class _LevelScreenState extends State<LevelScreen> {
     final lang =
         langProvider.locale.languageCode == 'en' ? Strings.en : Strings.vi;
 
+    // cập nhật số lượng item từ GameService
     final gs = context.watch<GameService>();
 
     return Scaffold(
@@ -410,6 +430,7 @@ class _LevelScreenState extends State<LevelScreen> {
       body: Column(
         children: [
           const SizedBox(height: 12),
+          // --- THANH HIỂN THỊ VẬT PHẨM VÀ THỜI GIAN ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
@@ -430,6 +451,8 @@ class _LevelScreenState extends State<LevelScreen> {
                         color: Colors.blueAccent,
                         count: gs.user.inventory["freeze"]?.owned ?? 0,
                         onTap: () => _activateFreezeTime(gs, lang),
+                        // Vô hiệu hóa nút khi đang đóng băng
+                        isDisabled: _isFrozen,
                       ),
                       const SizedBox(width: 16),
                       _buildItemButton(
@@ -438,16 +461,19 @@ class _LevelScreenState extends State<LevelScreen> {
                         color: Colors.orangeAccent,
                         count: gs.user.inventory["double"]?.owned ?? 0,
                         onTap: () => _activateDoubleCoins(gs, lang),
+                        // Vô hiệu hóa nút nếu đã kích hoạt
+                        isDisabled: gs.doubleCoinsPlaysLeft > 0,
                       ),
                     ],
                   ),
 
-                  // Timer
+                  // --- Đồng hồ ---
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.timer_outlined,
+                        // Đổi màu khi đóng băng
                         color: _isFrozen
                             ? Colors.blue.shade700
                             : Colors.red.shade700,
@@ -459,6 +485,7 @@ class _LevelScreenState extends State<LevelScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          // Đổi màu khi đóng băng
                           color: _isFrozen
                               ? Colors.blue.shade700
                               : Colors.red.shade700,
@@ -470,6 +497,7 @@ class _LevelScreenState extends State<LevelScreen> {
               ),
             ),
           ),
+          // --- Lưới game ---
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -503,10 +531,9 @@ class _LevelScreenState extends State<LevelScreen> {
     required int count,
     required Color color,
     required VoidCallback onTap,
+    bool isDisabled = false,
   }) {
-    final gs = context.read<GameService>();
-    final bool canUse =
-        (gs.user.inventory[label.toLowerCase()]?.owned ?? 0) > 0;
+    final bool canUse = count > 0 && !isDisabled;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -516,18 +543,14 @@ class _LevelScreenState extends State<LevelScreen> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: canUse
+                    ? color.withOpacity(0.15)
+                    : Colors.grey.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Icon(icon, color: color, size: 30),
-                onPressed: (label == (Strings.en['freeze'] ?? "Freeze") ||
-                            label == (Strings.vi['freeze'] ?? "Freeze")) &&
-                        _isFrozen
-                    ? null
-                    : canUse
-                        ? onTap
-                        : null,
+                icon: Icon(icon, color: canUse ? color : Colors.grey, size: 30),
+                onPressed: canUse ? onTap : null,
                 tooltip: label,
               ),
             ),
@@ -537,7 +560,7 @@ class _LevelScreenState extends State<LevelScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent,
+                  color: canUse ? Colors.redAccent : Colors.grey,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.white, width: 1),
                 ),
