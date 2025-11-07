@@ -53,8 +53,9 @@ class PuzzleGalleryScreen extends StatelessWidget {
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content:
-                          Text('Bạn chưa có mảnh ghép nào cho tranh này!')),
+                    content: Text('Bạn chưa có mảnh ghép nào cho tranh này!'),
+                    duration: const Duration(seconds: 1),
+                  ),
                 );
               }
             },

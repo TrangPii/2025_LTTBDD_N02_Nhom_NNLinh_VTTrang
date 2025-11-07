@@ -83,6 +83,7 @@ class ShopScreen extends StatelessWidget {
                         content: Text(success
                             ? "${t['purchased']} $itemName"
                             : (t['not_enough_coins'] ?? 'Not enough coins')),
+                        duration: const Duration(seconds: 1),
                         backgroundColor: success ? Colors.green : Colors.red,
                       ),
                     );
@@ -140,8 +141,10 @@ class ShopScreen extends StatelessWidget {
                       gs.setCurrentTheme(theme.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text(
-                                'Switched to ${t[theme.nameKey] ?? theme.id} theme')),
+                          content: Text(
+                              'Switched to ${t[theme.nameKey] ?? theme.id} theme'),
+                          duration: const Duration(seconds: 1),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.swap_horiz, size: 18),
@@ -158,9 +161,11 @@ class ShopScreen extends StatelessWidget {
                       final success = gs.unlockTheme(theme.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text(success
-                                ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
-                                : 'Failed to unlock')),
+                          content: Text(success
+                              ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
+                              : 'Failed to unlock'),
+                          duration: const Duration(seconds: 1),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.lock_open, size: 18),

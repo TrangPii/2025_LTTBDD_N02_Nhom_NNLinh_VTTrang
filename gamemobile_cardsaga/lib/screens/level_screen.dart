@@ -112,15 +112,20 @@ class _LevelScreenState extends State<LevelScreen> {
     if (_isFrozen) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                t['freeze_already_active'] ?? "Freeze is already active!")),
+          content:
+              Text(t['freeze_already_active'] ?? "Freeze is already active!"),
+          duration: const Duration(seconds: 1),
+        ),
       );
       return;
     }
 
     if (_freezeCountThisLevel >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t['max_freeze'] ?? "Max 5 freezes per level!")),
+        SnackBar(
+          content: Text(t['max_freeze'] ?? "Max 5 freezes per level!"),
+          duration: const Duration(seconds: 1),
+        ),
       );
       return;
     }
@@ -129,6 +134,7 @@ class _LevelScreenState extends State<LevelScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t['not_enough_items'] ?? "No freeze items left!"),
+          duration: const Duration(seconds: 1),
           backgroundColor: Colors.red,
         ),
       );
@@ -151,6 +157,7 @@ class _LevelScreenState extends State<LevelScreen> {
       SnackBar(
         backgroundColor: Colors.blueAccent,
         content: Text(t['freeze_used'] ?? "Freeze Time activated for 20s!"),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -162,6 +169,7 @@ class _LevelScreenState extends State<LevelScreen> {
         backgroundColor: Colors.orangeAccent,
         content: Text(
             "${t['double_already_active'] ?? "Double Coins already active!"} ${t['plays_left'] ?? 'Plays left'}: ${gs.doubleCoinsPlaysLeft}"),
+        duration: const Duration(seconds: 1),
       ));
       return;
     }
@@ -171,6 +179,7 @@ class _LevelScreenState extends State<LevelScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t['not_enough_items'] ?? "No double coin items left!"),
+          duration: const Duration(seconds: 1),
           backgroundColor: Colors.red,
         ),
       );
@@ -181,6 +190,7 @@ class _LevelScreenState extends State<LevelScreen> {
       backgroundColor: Colors.orangeAccent,
       content: Text(
           "${t['double_used'] ?? "Double Coins activated!"} ${t['plays_left'] ?? 'Plays left'}: ${gs.doubleCoinsPlaysLeft}"),
+      duration: const Duration(seconds: 1),
     ));
   }
 
