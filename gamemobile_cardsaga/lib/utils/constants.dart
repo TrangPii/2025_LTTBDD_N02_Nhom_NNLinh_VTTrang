@@ -56,7 +56,7 @@ class Strings {
     'item_double': 'Double',
     'loading_game_data': 'Loading game data...',
     'level_locked': 'Level is locked',
-    'no_puzzle_pieces': "You don't have any pieces for this puzzle yet!",
+    'no_puzzle_pieces': 'You have no piece for this puzzle yet!',
     'switched_theme': 'Switched theme',
     'unlock_failed': 'Failed to unlock',
     'intro_desc_1':
@@ -131,5 +131,6 @@ class Strings {
     'member_2': 'Vũ Thị Trang',
     'loading': 'Đang tải...',
     'play': 'CHƠI!',
+    'switched_to': 'Chuyển sang'
   };
 }

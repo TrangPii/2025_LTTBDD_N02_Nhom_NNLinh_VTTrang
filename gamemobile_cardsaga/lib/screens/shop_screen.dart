@@ -142,7 +142,7 @@ class ShopScreen extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                              'Switched to ${t[theme.nameKey] ?? theme.id} theme'),
+                              '${t['switched_theme'] ?? 'Switched theme'}: ${t[theme.nameKey] ?? theme.id}'),
                           duration: const Duration(seconds: 1),
                         ),
                       );
