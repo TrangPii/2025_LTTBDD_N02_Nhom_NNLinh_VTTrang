@@ -17,7 +17,7 @@ class PuzzleScreen extends StatefulWidget {
 }
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
-  // Đặt chiều rộng tối đa cho phần tiến độ (để cân xứng với màn hình desktop)
+  // Đặt chiều rộng tối đa cho phần tiến độ
   static const double _maxProgressWidth = 500.0;
 
   @override
@@ -39,10 +39,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ),
       body: Column(
         children: [
-          // Khu vực hình ảnh: Co giãn và chiếm không gian còn lại
           Expanded(
             child: Center(
-              // Padding cho hình ảnh (16.0 xung quanh)
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: PuzzleDisplayWidget(
@@ -51,19 +49,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               ),
             ),
           ),
-          // --------------------------------------------------------
-
-          // --- Phần Tiến độ (Fixed height, dính ở dưới) ---
           Center(
-            // QUAN TRỌNG: Dùng Center để ngăn phần tử dãn ngang hết cỡ
             child: ConstrainedBox(
-              // Giới hạn chiều rộng tối đa cho phần tiến độ
               constraints: const BoxConstraints(maxWidth: _maxProgressWidth),
               child: Padding(
-                // Tối ưu Padding: Bottom padding 30.0 để có khoảng trống đẹp mắt
                 padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 30.0),
                 child: Column(
-                  // Không cần crossAxisAlignment: stretch nữa
                   children: [
                     if (isCompleted)
                       Padding(
