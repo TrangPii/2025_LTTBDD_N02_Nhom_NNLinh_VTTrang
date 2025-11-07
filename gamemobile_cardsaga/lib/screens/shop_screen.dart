@@ -109,64 +109,78 @@ class ShopScreen extends StatelessWidget {
               final themeIndex = index - items.length - 2;
               if (themeIndex < themes.length) {
                 final theme = themes[themeIndex];
+
+                // --- Biến logic ---
                 final bool isUnlocked = gs.isThemeUnlocked(theme.id);
-                final bool canUnlock = gs.user.stars >= theme.requiredStars;
+                final bool canAfford = gs.user.stars >= theme.requiredStars;
                 final bool isSelected = gs.currentTheme.id == theme.id;
 
                 Widget trailingButton;
 
-                if (isUnlocked) {
-                  if (isSelected) {
-                    trailingButton = ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green),
-                      onPressed: null,
-                      icon: const Icon(Icons.check_circle, size: 18),
-                      label: Text(t['selected'] ?? 'Selected'),
-                    );
-                  } else {
-                    trailingButton = ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orangeAccent),
-                      onPressed: () {
-                        gs.setCurrentTheme(theme.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Switched to ${t[theme.nameKey] ?? theme.id} theme')),
-                        );
-                      },
-                      icon: const Icon(Icons.swap_horiz, size: 18),
-                      label: Text(t['select'] ?? 'Select'),
-                    );
-                  }
-                } else {
-                  if (canUnlock) {
-                    trailingButton = ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orangeAccent),
-                      onPressed: () {
-                        final success = gs.unlockTheme(theme.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(success
-                                  ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
-                                  : 'Failed to unlock')),
-                        );
-                      },
-                      icon: const Icon(Icons.lock_open, size: 18),
-                      label: Text(t['unlock'] ?? 'Unlock'),
-                    );
-                  } else {
-                    trailingButton = ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey),
-                      onPressed: null,
-                      icon: const Icon(Icons.lock, size: 18),
-                      label: Text(t['unlock'] ?? 'Unlock'),
-                    );
-                  }
+                // --- BẮT ĐẦU LOGIC 4 TRƯỜNG HỢP ---
+
+                // Yêu cầu 1: Đang sử dụng -> Button "Selected" (Xanh lá)
+                if (isSelected) {
+                  trailingButton = ElevatedButton.icon(
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: null,
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: Text(t['selected'] ?? 'Selected'),
+                  );
                 }
+
+                // Yêu cầu 2: Đã mở khóa (nhưng không được chọn) -> Button "Select" (Vàng)
+                else if (isUnlocked && !isSelected) {
+                  trailingButton = ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent),
+                    onPressed: () {
+                      gs.setCurrentTheme(theme.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Switched to ${t[theme.nameKey] ?? theme.id} theme')),
+                      );
+                    },
+                    icon: const Icon(Icons.swap_horiz, size: 18),
+                    label: Text(t['select'] ?? 'Select'),
+                  );
+                }
+
+                // Yêu cầu 3: Chưa mở khóa NHƯNG đủ sao -> Button "Unlock" (Vàng)
+                else if (!isUnlocked && canAfford) {
+                  trailingButton = ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent),
+                    onPressed: () {
+                      // Hàm unlockTheme này đã được sửa (ở bước trước) để không trừ sao
+                      final success = gs.unlockTheme(theme.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(success
+                                ? '${t['unlocked']} ${t[theme.nameKey] ?? theme.id}!'
+                                : 'Failed to unlock')),
+                      );
+                    },
+                    icon: const Icon(Icons.lock_open, size: 18),
+                    label: Text(t['unlock'] ?? 'Unlock'),
+                  );
+                }
+
+                // Yêu cầu 4: Chưa mở khóa VÀ không đủ sao -> Button "Lock" (Xám)
+                else {
+                  // (!isUnlocked && !canAfford)
+                  trailingButton = ElevatedButton.icon(
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                    onPressed: null, // Vô hiệu hóa nút
+                    icon: const Icon(Icons.lock, size: 18),
+                    label: Text(t['unlock'] ?? 'Unlock'),
+                  );
+                }
+
+                // --- KẾT THÚC LOGIC 4 TRƯỜNG HỢP ---
 
                 return ListTile(
                   leading:
