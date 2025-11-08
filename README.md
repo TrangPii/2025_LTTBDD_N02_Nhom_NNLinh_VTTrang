@@ -75,6 +75,12 @@ Mục tiêu của trò chơi:
 
 ---
 
-## 4. Thành viên nhóm
+## 4. Demo dự án
+
+- **Link Youtube**: https://youtu.be/3p44adVEVZo?si=DhbagMqz5HMhCerl
+
+---
+
+## 5. Thành viên nhóm
 - Thành viên: Nguyễn Ngọc Linh
 - Thành viên: Vũ Thị Trang
