@@ -246,6 +246,9 @@ class _LevelScreenState extends State<LevelScreen> {
       _gameOver = true;
     });
 
+    final gameService = Provider.of<GameService>(context, listen: false);
+    gameService.playResultMusic(won);
+
     if (!won) {
       showDialog(
         context: context,
@@ -274,13 +277,14 @@ class _LevelScreenState extends State<LevelScreen> {
           actions: [
             ElevatedButton(
               onPressed: () {
+                gameService.resumeBgmAfterResult();
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
               style:
                   ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
               child: Text(lang['ok'] ?? "OK",
-                  style: TextStyle(color: Colors.white)),
+                  style: const TextStyle(color: Colors.white)),
             )
           ],
         ),
@@ -300,7 +304,6 @@ class _LevelScreenState extends State<LevelScreen> {
     coins = stars * 10;
 
     LevelCompletionResult result = LevelCompletionResult();
-    final gameService = Provider.of<GameService>(context, listen: false);
 
     try {
       result = await gameService.completeLevel(
@@ -398,13 +401,14 @@ class _LevelScreenState extends State<LevelScreen> {
           actions: [
             ElevatedButton(
               onPressed: () {
+                gameService.resumeBgmAfterResult();
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
               style:
                   ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
               child: Text(lang['ok'] ?? "OK",
-                  style: TextStyle(color: Colors.white)),
+                  style: const TextStyle(color: Colors.white)),
             )
           ],
         ),

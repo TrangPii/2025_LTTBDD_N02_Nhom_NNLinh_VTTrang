@@ -72,6 +72,7 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showBack;
   final bool showGalleryButton;
   final bool showCoinsAndStars;
+  final bool showSettings;
 
   const TopStatusBar({
     super.key,
@@ -80,10 +81,73 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
     this.showBack = false,
     this.showGalleryButton = true,
     this.showCoinsAndStars = true,
+    this.showSettings = true,
   });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  // Popup cài đặt
+  void _showSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer<GameService>(
+          builder: (context, gs, child) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              backgroundColor: const Color(0xFFFFF0F5),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.settings, color: Colors.pinkAccent),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Setting", // Hoặc dùng lang['settings'] nếu muốn
+                    style: TextStyle(
+                        color: Colors.pink.shade800,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SwitchListTile(
+                      title: const Text("Music",
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      secondary: Icon(
+                        gs.isMusicOn ? Icons.music_note : Icons.music_off,
+                        color: gs.isMusicOn ? Colors.pinkAccent : Colors.grey,
+                      ),
+                      value: gs.isMusicOn,
+                      activeColor: Colors.pinkAccent,
+                      onChanged: (bool value) {
+                        gs.toggleMusic();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close",
+                      style: TextStyle(color: Colors.pinkAccent, fontSize: 16)),
+                )
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +164,10 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.pinkAccent,
       elevation: 4.0,
       automaticallyImplyLeading: false,
+
+      // 1. Nếu có showBack -> Hiện nút Back
+      // 2. Nếu KHÔNG showBack mà có showSettings -> Hiện nút Cài đặt
+      // 3. Còn lại -> Null
       leading: showBack
           ? IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -107,7 +175,14 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
               tooltip: t['back'],
               onPressed: () => Navigator.pop(context),
             )
-          : null,
+          : (showSettings
+              ? IconButton(
+                  icon: const Icon(Icons.settings, color: Colors.white),
+                  tooltip: "Settings",
+                  onPressed: () => _showSettingsDialog(context),
+                )
+              : null),
+
       title: Row(
         children: [
           if (title != null)
@@ -134,6 +209,7 @@ class TopStatusBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ],
       ),
+
       actions: [
         IconButton(
           icon: const Icon(Icons.language, color: Colors.white),

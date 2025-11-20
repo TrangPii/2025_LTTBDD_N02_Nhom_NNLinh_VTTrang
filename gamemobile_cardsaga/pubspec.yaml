@@ -30,14 +30,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.5 
-  collection: ^1.17.2
-  animate_do: ^3.3.4
-  saver_gallery: ^2.0.0
-  permission_handler: ^11.0.1
+  provider: ^6.1.5
+  collection: ^1.19.1
+  animate_do: ^4.2.0
+  saver_gallery: ^4.1.0
+  permission_handler: ^12.0.1
   screenshot: ^3.0.0     
-  google_fonts: ^6.2.1
-  shared_preferences: ^2.2.2
+  google_fonts: ^6.3.2
+  shared_preferences: ^2.5.3
+  audioplayers: ^6.5.1
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -75,6 +76,7 @@ flutter:
     - assets/imgs/fruit_vegetables/
     - assets/imgs/food/
     - assets/logo.png
+    - assets/audio/
   #  - assets/backgrounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -89,10 +89,12 @@ class _IntroScreenState extends State<IntroScreen> {
 
     return Scaffold(
       appBar: TopStatusBar(
+        title: '',
         showShopButton: false,
         showGalleryButton: false,
         showCoinsAndStars: false,
         showBack: false,
+        showSettings: false,
       ),
       backgroundColor: AppColors.bg,
       body: Padding(
